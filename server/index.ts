@@ -1,12 +1,22 @@
 import * as express from 'express';
-import * as path from 'path';
+import { Socket } from 'socket.io';
+import { StupidGenerator } from '../common/Board'
+
 const app = express();
-const port = 25565;
+const server = require('http').createServer(app);
+const io = require('socket.io')(server);
 
-
-console.log(__dirname);
 app.use(express.static('dist/public'));
 
-app.listen(port, () => {
-  console.log(`Example app listening at http://localhost:${port}`)
-})
+const board = new StupidGenerator().generateBoard();
+
+io.on('connection', (socket: Socket) => {
+  console.log('a user connected');
+  socket.emit('allData', board.serialize());
+  socket.on('disconnect', () => console.log('a user disconnected'));
+});
+
+
+server.listen(25565, () => {
+  console.log('listening on *:25565');
+});

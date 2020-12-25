@@ -1,3 +1,5 @@
+import { serialize } from "v8";
+
 export enum TileType {
     NONE,
     FLOOR,
@@ -5,16 +7,16 @@ export enum TileType {
     WALL,
 }
 
-type Position = {
+export type Position = {
     x: number,
     y: number,
 }
 
-type Offset =
-    | {x: 1, y: 0}
-    | {x: -1, y: 0}
-    | {x: 0, y: 1}
-    | {x: 0, y: -1}
+export type Offset =
+    | { x: 1, y: 0 }
+    | { x: -1, y: 0 }
+    | { x: 0, y: 1 }
+    | { x: 0, y: -1 }
 
 class Tile {
     readonly type: TileType;
@@ -29,17 +31,16 @@ class Tile {
         return (this.type === TileType.FLOOR || this.type === TileType.TARGET) && this.content === null;
     }
 
-    tryPush(offset : Offset)
-    {
-        if(this.type === TileType.NONE || this.type === TileType.WALL)
+    tryPush(offset: Offset) {
+        if (this.type === TileType.NONE || this.type === TileType.WALL)
             return false;
-        if(this.content === null)
+        if (this.content === null)
             return true;
         return this.content.tryPush(offset);
     }
-    
-    hasBox(){
-        if(this.content === null)
+
+    hasBox() {
+        if (this.content === null)
             return false;
         return this.content.isBox();
     }
@@ -52,7 +53,7 @@ class Tile {
 
 export class StupidGenerator {
     generateBoard() {
-        let playerX = 0 , playerY = 0;
+        let playerX = 0, playerY = 0;
         let board = new Array<Array<TileType>>(10)
         let targetCount = 0
         for (let x = 0; x < 10; x++) {
@@ -71,7 +72,7 @@ export class StupidGenerator {
             }
 
         }
-        return new Board(board, [{x: playerX, y: playerY}], [{x: 5, y: 5}, {x: 6, y: 6}]);
+        return new Board(board, [{ x: playerX, y: playerY }], [{ x: 5, y: 5 }, { x: 6, y: 6 }]);
     }
 }
 
@@ -85,7 +86,7 @@ export class TutorialGenerator {
             }
         }
         board[2][2].type = TileType.TARGET;
-        return new Board(board, [{x: 0, y: 0}], [{x: 1, y: 1}])
+        return new Board(board, [{ x: 0, y: 0 }], [{ x: 1, y: 1 }])
     }
 
 }
@@ -105,6 +106,12 @@ export class TutorialGenerator {
 //     }
 // }
 
+
+export type SerializedBoard = {
+    board: TileType[][],
+    players: Position[],
+    boxes: Position[],
+}
 export class Board {
     private board: Tile[][];
     private boxes: Box[];
@@ -121,6 +128,31 @@ export class Board {
                 if (this.board[x][y].type === TileType.TARGET)
                     this.targetTiles.push({ x, y });
 
+
+    }
+
+    *createBoxObservers() {
+        for (let box of this.boxes) {
+            let observer = makeDefaultObserver();
+            box.addObserver(observer);
+            yield { observer, position: box.getPosition() };
+        }
+    }
+
+    *createPlayerObservers() {
+        for (let player of this.players) {
+            let observer = makeDefaultObserver();
+            player.addObserver(observer);
+            yield { observer, position: player.getPosition() };
+        }
+    }
+
+    public serialize() {
+        return {
+            board: this.board.map(col => col.map(tile => tile.type)),
+            players: this.players.map(player => player.getPosition()),
+            boxes: this.boxes.map(box => box.getPosition()),
+        }
     }
 
     public get width() {
@@ -131,19 +163,26 @@ export class Board {
         return this.board[0].length
     }
 
+    public contains(position: Position) {
+        return 0 <= position.x && position.x < this.width && 0 <= position.y && position.y < this.height;
+    }
+    public tileTypeAt(position: Position) {
+        return this.at(position).type;
+    }
+
     public at(position: Position) {
-        if(0 <= position.x && position.x < this.width && 0 <= position.y && position.y < this.height)
+        if (this.contains(position))
             return this.board[position.x][position.y]
         else
             return new Tile(TileType.NONE)
     }
 
-    forAllTiles(f : (position: Position, type: TileType)=>void) {
+    public forAllTiles(f: (position: Position, type: TileType) => void) {
         for (let x = 0; x < this.width; x++)
             for (let y = 0; y < this.width; y++) {
-                const type = this.at({x, y}).type;
+                const type = this.at({ x, y }).type;
                 if (type !== TileType.NONE)
-                    f({x, y}, type);
+                    f({ x, y }, type);
             }
 
     }
@@ -162,31 +201,40 @@ export class Board {
 }
 
 
+
+export type EntityObserver = {
+    onEnter: (position: Position) => void,
+    onLeave: (position: Position) => void,
+}
 abstract class BoardEntity {
     protected position: Position;
     protected board: Board;
-    public onEnter: (position: Position)=>void;
-    public onLeave: (position: Position)=>void;
-
+    private observers: EntityObserver[];
 
     constructor(position: Position, board: Board) {
         this.position = position;
         this.board = board;
         this.board.at(position).content = this;
-        this.onEnter = () => { };
-        this.onLeave = () => { };
+        this.observers = [];
+    }
+
+    public addObserver(observer: EntityObserver) {
+        this.observers.push(observer);
     }
 
     public move(offset: Offset) {
-        this.onLeave(this.position)
+        for (const observer of this.observers) observer.onLeave(this.position);
         this.board.at(this.position).clear();
-        this.position.x += offset.x;
-        this.position.y += offset.y;
+        this.position = this.positionAfterPush(offset);
         this.board.at(this.position).content = this;
-        this.onEnter(this.position);
+        for (const observer of this.observers) observer.onEnter(this.position);
     }
     public getPosition(): Position {
         return this.position;
+    }
+
+    protected positionAfterPush(offset: Offset) {
+        return { x: this.position.x + offset.x, y: this.position.y + offset.y };
     }
 
     public abstract tryPush(offset: Offset): boolean;
@@ -207,7 +255,7 @@ class Player extends BoardEntity {
     }
 
     tryMove(offset: Offset) {
-        if(!this.board.at({x: this.position.x + offset.x, y: this.position.y + offset.y}).tryPush(offset))
+        if (!this.board.at(this.positionAfterPush(offset)).tryPush(offset))
             return false;
         this.move(offset);
         return true;
@@ -219,8 +267,9 @@ class Box extends BoardEntity {
         super(position, board);
     }
 
+
     tryPush(offset: Offset) {
-        if(!this.board.at({x: this.position.x + offset.x, y: this.position.y + offset.y}).isEmpty())
+        if (!this.board.at(this.positionAfterPush(offset)).isEmpty())
             return false;
         this.move(offset);
         return true;
@@ -229,4 +278,9 @@ class Box extends BoardEntity {
     isBox() {
         return true;
     }
+}
+
+
+function makeDefaultObserver() {
+    return { onEnter: (position: Position) => { }, onLeave: (position: Position) => { } }
 }

@@ -11,6 +11,7 @@ module.exports = {
         new HtmlWebpackPlugin({
             filename: 'index.html',
             template: 'client/index.html',
+            favicon: "client/static/favicon.png",
             cache: false,
         }),
         new CleanWebpackPlugin(),
@@ -18,31 +19,31 @@ module.exports = {
     devtool: 'inline-source-map',
     module: {
         rules: [
-        {
-            test: /\.tsx?$/,
-            use: [
-                {
-                    loader: 'ts-loader',
-                    options: {configFile: 'tsconfig.client.json'},
-                }
-            ],
-            include: [
-                path.resolve(__dirname, "client"),
-                path.resolve(__dirname, "common"),
-            ]
-            
-        },
-        {
-            test: /\.css$/,
-            use: [
-                "style-loader",
-                'css-loader',
-            ],
-          },
+            {
+                test: /\.tsx?$/,
+                use: [
+                    {
+                        loader: 'ts-loader',
+                        options: { configFile: 'tsconfig.client.json' },
+                    }
+                ],
+                include: [
+                    path.resolve(__dirname, "client"),
+                    path.resolve(__dirname, "common"),
+                ]
+
+            },
+            {
+                test: /\.css$/,
+                use: [
+                    "style-loader",
+                    'css-loader',
+                ],
+            },
         ],
     },
     resolve: {
-        extensions: [ '.tsx', '.ts', '.js' ],
+        extensions: ['.tsx', '.ts', '.js'],
         mainFields: ['browser', 'module', 'main'],
     },
     output: {
