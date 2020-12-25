@@ -1,0 +1,19 @@
+{
+    "compilerOptions": {
+        "noImplicitAny": true,
+        "strictNullChecks": true,
+        "baseUrl": ".",
+        "target": "ES6",
+        "moduleResolution": "node",
+        "module": "CommonJS",
+        "outDir": "dist/private",
+        "skipLibCheck": true,
+    },
+    "include": [
+      "./server/",
+      "./common/",
+    ],
+    "exclude": [
+      "./node_modules/"
+    ]
+}
