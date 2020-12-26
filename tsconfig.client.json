@@ -1,14 +1,14 @@
 {
   "compilerOptions": {
-      "noImplicitAny": true,
-      "strictNullChecks": true,
-      "allowSyntheticDefaultImports": true,
-      "baseUrl": ".",
-      "target": "ES6",
-      "moduleResolution": "node",
-      "module": "ES6",
-      "outDir": "dist/public",
-      "skipLibCheck": true,
+    "noImplicitAny": true,
+    "strictNullChecks": true,
+    "allowSyntheticDefaultImports": true,
+    "baseUrl": ".",
+    "target": "ES6",
+    "moduleResolution": "node",
+    "module": "ES6",
+    "outDir": "dist/public",
+    "skipLibCheck": true,
   },
   "include": [
     "./client/",
@@ -16,5 +16,8 @@
   ],
   "exclude": [
     "./node_modules/"
+  ],
+  "files": [
+    "custom.d.ts"
   ]
 }
