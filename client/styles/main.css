@@ -93,9 +93,6 @@ body {
     outline: none;
 }
 
-.btn ion-icon {
-    margin-right: 5px;
-}
 
 .btn:hover {
     background-color: #2a2a2a;
@@ -140,4 +137,80 @@ h1 {
 
 #satisfaction-counter.satisfied {
     color: #91ff6f;
+}
+
+.menu {
+    margin-top: 10px;
+}
+
+.menu > .menu-buttons, .grid-buttons {
+    border: 2px solid #eee;;
+    border-radius: 5px;
+}
+
+.menu-buttons {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.menu-buttons > button {
+    display: flex;
+    justify-content: between;
+    width: 200px;
+    padding: 12px;
+}
+
+.menu-buttons > button > .text {
+    flex-grow: 1;
+    text-align: center;
+}
+
+
+.easy {
+    color: #55ee62;
+}
+
+.medium {
+    color: #eed355;
+}
+
+.hard {
+    color: #ee5555;
+}
+
+.grid-buttons {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+}
+
+.grid-buttons > .btn {
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    justify-content: center;
+}
+
+
+.level-preview-wrapper {
+    display: inline-block;
+    position: relative;
+    width: 0;
+    height: 0;
+}
+.level-preview {
+    width: 200px;
+    height: 200px;
+    border: 2px solid #eee;
+    border-radius: 5px;
+    position: absolute;
+    right: 10px;
+    background-color: #111;
+}
+
+#level-editor-menu, #level-selector-menu {
+    display: flex;
+    flex-direction: row;
 }
