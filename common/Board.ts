@@ -1,3 +1,4 @@
+import { stat } from "fs";
 import { serialize } from "v8";
 
 export enum TileType {
@@ -91,20 +92,20 @@ export class TutorialGenerator {
 
 }
 
-// export class NetworkGenerator {
-//     generateBoard(data) {
-//         let board = data.board.map(col => {
-//             return col.map(tileData => {
-//                 return new Tile(tileData.type)
-//             })
-//         })
+export class MultiplayerTutorialGenerator {
+    generateBoard() {
+        let board: TileType[][] = new Array(10);
+        for (let x = 0; x < 10; x++) {
+            board[x] = new Array(10);
+            for (let y = 0; y < 10; y++) {
+                board[x][y] = TileType.FLOOR
+            }
+        }
+        board[2][2] = TileType.TARGET;
+        return new Board(board, [{ x: 0, y: 0 },{x:1, y:0}], [{ x: 1, y: 1 }])
+    }
 
-
-//         let boxes = data.boxes.map(boxData => new Box(boxData.x, boxData.y))
-//         let player = new Player(data.player.x, data.player.y)
-//         return new Board(board, player, boxes)
-//     }
-// }
+}
 
 
 export type SerializedBoard = {
@@ -112,6 +113,16 @@ export type SerializedBoard = {
     players: Position[],
     boxes: Position[],
 }
+
+export type BoardState = {
+    players: Position[],
+    boxes: Position[],
+}
+
+function positionsEqual(pos1: Position, pos2: Position) {
+    return pos1.x === pos2.x && pos1.y === pos2.y;
+}
+
 export class Board {
     private board: Tile[][];
     private boxes: Box[];
@@ -131,6 +142,14 @@ export class Board {
 
     }
 
+    getPlayerController(playerID: number) {
+        return new PlayerController(this.players[playerID]);
+    }
+
+    getPlayerCount() {
+        return this.players.length;
+    }
+
     *createBoxObservers() {
         for (let box of this.boxes) {
             let observer = makeDefaultObserver();
@@ -147,12 +166,27 @@ export class Board {
         }
     }
 
-    public serialize() {
+    public serialize(): SerializedBoard {
         return {
             board: this.board.map(col => col.map(tile => tile.type)),
             players: this.players.map(player => player.getPosition()),
             boxes: this.boxes.map(box => box.getPosition()),
         }
+    }
+
+    public getState(): BoardState{
+        return {
+            players: this.players.map(player => player.getPosition()),
+            boxes: this.boxes.map(box => box.getPosition()),
+        }
+    }
+
+    public setState(state: BoardState) {
+        for(let i in state.players) 
+            this.players[i].moveTo(state.players[i]);
+
+        for(let i in state.boxes) 
+            this.boxes[i].moveTo(state.boxes[i]);
     }
 
     public get width() {
@@ -206,6 +240,18 @@ export type EntityObserver = {
     onEnter: (position: Position) => void,
     onLeave: (position: Position) => void,
 }
+
+export class PlayerController {
+    private player: Player;
+    constructor(player: Player){
+        this.player = player;
+    }
+
+    public tryMove(offset: Offset) {
+        return this.player.tryMove(offset);
+    }
+}
+
 abstract class BoardEntity {
     protected position: Position;
     protected board: Board;
@@ -222,13 +268,18 @@ abstract class BoardEntity {
         this.observers.push(observer);
     }
 
-    public move(offset: Offset) {
+    public moveTo(position: Position) {
         for (const observer of this.observers) observer.onLeave(this.position);
         this.board.at(this.position).clear();
-        this.position = this.positionAfterPush(offset);
+        this.position = position;
         this.board.at(this.position).content = this;
         for (const observer of this.observers) observer.onEnter(this.position);
     }
+
+    public move(offset: Offset) {
+        this.moveTo(this.positionAfterPush(offset));
+    }
+
     public getPosition(): Position {
         return this.position;
     }

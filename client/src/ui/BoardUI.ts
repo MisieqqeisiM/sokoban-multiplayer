@@ -81,14 +81,14 @@ export class HTMLBoard implements BoardUI {
     }
 
     box.observer.onEnter = ({ x, y }) => {
-      this.setPosition(boxTile, x, y)
+      this.setPosition(boxTile, x, y);
       if (this.board.tileTypeAt({ x, y }) === TileType.TARGET)
-        boxTile.classList.add("is-satisfied")
-      this.tiles[x][y].classList.add("has-box")
+        boxTile.classList.add("is-satisfied");
+      this.tiles[x][y].classList.add("has-box");
     }
 
     box.observer.onLeave = ({ x, y }) => {
-      this.tiles[x][y].classList.remove("has-box")
+      this.tiles[x][y].classList.remove("has-box");
       if (this.board.tileTypeAt({ x, y }) === TileType.TARGET)
         boxTile.classList.remove("is-satisfied");
     }
