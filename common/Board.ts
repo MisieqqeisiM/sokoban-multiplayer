@@ -98,11 +98,17 @@ export class MultiplayerTutorialGenerator {
         for (let x = 0; x < 10; x++) {
             board[x] = new Array(10);
             for (let y = 0; y < 10; y++) {
-                board[x][y] = TileType.FLOOR
+                if(x > 2 && x < 7 && y > 2 && y < 7)
+                    board[x][y] = TileType.TARGET
+                else
+                    board[x][y] = TileType.FLOOR
             }
         }
-        board[2][2] = TileType.TARGET;
-        return new Board(board, [{ x: 0, y: 0 },{x:1, y:0}], [{ x: 1, y: 1 }])
+        let players: Position[] = [];
+        for(let x = 0; x < 10; x++){
+            players.push({x, y: 0});
+        }
+        return new Board(board, players, [{ x: 1, y: 2 }])
     }
 
 }
