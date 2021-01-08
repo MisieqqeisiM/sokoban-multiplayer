@@ -10,13 +10,14 @@ export type MainMenuControls = {
 }
 
 export type DifficultyMenuControls = {
+    mainMenu: () => void,
     onEasy: () => void,
     onMedium: () => void,
     onHard: () => void,
 }
 
 
-export class MainMenu{
+export class MainMenu {
     element: ChildNode;
     constructor(controls: MainMenuControls) {
         let div = document.createElement('div');
@@ -35,11 +36,12 @@ export class MainMenu{
     }
 }
 
-export class DifficultyMenu{
+export class DifficultyMenu {
     element: ChildNode;
     constructor(controls: DifficultyMenuControls) {
         let div = document.createElement('div');
         div.innerHTML = difficultyMenuHTML.trim();
+        div.querySelector('#main-menu-btn')!.addEventListener('click', controls.mainMenu);
         div.querySelector('#easy-btn')!.addEventListener('click', controls.onEasy);
         div.querySelector('#medium-btn')!.addEventListener('click', controls.onMedium);
         div.querySelector('#hard-btn')!.addEventListener('click', controls.onHard);

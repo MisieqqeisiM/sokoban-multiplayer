@@ -1,6 +1,7 @@
 import io from 'socket.io-client';
-import { Offset, Board, SerializedBoard, BoardState } from '../../common/Board'
+import { Offset, Board, SerializedBoard, BoardState, StupidGenerator } from '../../common/Board'
 import '../styles/main.css';
+import { BoardDisplay } from './ui/3DBoard';
 import { HTMLBoard } from './ui/BoardUI';
 
 import * as ui from "./ui/menu"
@@ -28,13 +29,13 @@ class MainMenu extends GameState {
   constructor(game: Game) {
     super(game);
     let controls: ui.MainMenuControls = {
-      onPlayByDifficulty: ()=>{
+      onPlayByDifficulty: () => {
         this.menu.remove();
         this.changeGameState(new DifficultyMenu(game));
       },
-      onPlayAllLevels: ()=>{},
-      onLevelEditor: ()=>{},
-      onMultiplayer: ()=>{},
+      onPlayAllLevels: () => { },
+      onLevelEditor: () => { },
+      onMultiplayer: () => { },
     }
     this.menu = new ui.MainMenu(controls);
     this.menu.appendTo(game.gameWrapper);
@@ -46,13 +47,30 @@ class DifficultyMenu extends GameState {
   constructor(game: Game) {
     super(game);
     let controls: ui.DifficultyMenuControls = {
-      onEasy: ()=>{},
-      onMedium: ()=>{},
-      onHard: ()=>{},
+      mainMenu: () => {
+        this.menu.remove();
+        this.changeGameState(new MainMenu(game));
+      },
+      onEasy: () => {
+        this.menu.remove();
+        this.changeGameState(new GameBoard(game));
+      },
+      onMedium: () => { },
+      onHard: () => { },
     }
     this.menu = new ui.DifficultyMenu(controls);
     this.menu.appendTo(game.gameWrapper);
   }
 }
+
+class GameBoard extends GameState {
+  board: Board;
+  constructor(game: Game) {
+    super(game);
+    this.board = new StupidGenerator().generateBoard(20, 20);
+    new BoardDisplay(this.board);
+  }
+}
+
 
 let game = new Game(document.getElementById('game-wrapper')!);

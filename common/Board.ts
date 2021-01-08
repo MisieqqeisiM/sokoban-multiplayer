@@ -53,13 +53,13 @@ class Tile {
 
 
 export class StupidGenerator {
-    generateBoard() {
+    generateBoard(width: number, height: number) {
         let playerX = 0, playerY = 0;
         let board = new Array<Array<TileType>>(10)
         let targetCount = 0
-        for (let x = 0; x < 10; x++) {
+        for (let x = 0; x < width; x++) {
             board[x] = new Array<TileType>(10)
-            for (let y = 0; y < 10; y++) {
+            for (let y = 0; y < height; y++) {
                 board[x][y] = TileType.NONE;
                 if (Math.random() < 0.8)
                     board[x][y] = TileType.FLOOR;
@@ -98,15 +98,15 @@ export class MultiplayerTutorialGenerator {
         for (let x = 0; x < 10; x++) {
             board[x] = new Array(10);
             for (let y = 0; y < 10; y++) {
-                if(x > 2 && x < 7 && y > 2 && y < 7)
+                if (x > 2 && x < 7 && y > 2 && y < 7)
                     board[x][y] = TileType.TARGET
                 else
                     board[x][y] = TileType.FLOOR
             }
         }
         let players: Position[] = [];
-        for(let x = 0; x < 10; x++){
-            players.push({x, y: 0});
+        for (let x = 0; x < 10; x++) {
+            players.push({ x, y: 0 });
         }
         return new Board(board, players, [{ x: 1, y: 2 }])
     }
@@ -180,7 +180,7 @@ export class Board {
         }
     }
 
-    public getState(): BoardState{
+    public getState(): BoardState {
         return {
             players: this.players.map(player => player.getPosition()),
             boxes: this.boxes.map(box => box.getPosition()),
@@ -188,10 +188,10 @@ export class Board {
     }
 
     public setState(state: BoardState) {
-        for(let i in state.players) 
+        for (let i in state.players)
             this.players[i].moveTo(state.players[i]);
 
-        for(let i in state.boxes) 
+        for (let i in state.boxes)
             this.boxes[i].moveTo(state.boxes[i]);
     }
 
@@ -249,7 +249,7 @@ export type EntityObserver = {
 
 export class PlayerController {
     private player: Player;
-    constructor(player: Player){
+    constructor(player: Player) {
         this.player = player;
     }
 
